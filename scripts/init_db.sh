@@ -24,15 +24,19 @@ DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 DB_NAME="${POSTGRES_DB:=newsletter}"
 # Check if a custom port has been set, otherwise default to '5432'
 DB_PORT="${POSTGRES_PORT:=5432}"
-# Launch postgres using Docker
-docker run \
--e POSTGRES_USER=${DB_USER} \
--e POSTGRES_PASSWORD=${DB_PASSWORD} \
--e POSTGRES_DB=${DB_NAME} \
--p "${DB_PORT}":5432 \
--d postgres \
-postgres -N 1000
-# ^ Increased maximum number of connections for testing purposes
+
+if [[ -z "${SKIP_DOCKER}" ]]
+then
+    # Launch postgres using Docker
+    docker run \
+    -e POSTGRES_USER=${DB_USER} \
+    -e POSTGRES_PASSWORD=${DB_PASSWORD} \
+    -e POSTGRES_DB=${DB_NAME} \
+    -p "${DB_PORT}":5432 \
+    -d postgres \
+    postgres -N 1000
+    # ^ Increased maximum number of connections for testing purposes
+fi
 
 # Keep pinging Postgres until it's ready to accept commands
 export PGPASSWORD="${DB_PASSWORD}"
@@ -44,3 +48,6 @@ done
 
 export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
 diesel setup
+diesel migration run
+
+>&2 echo "Diesel has migrated."
