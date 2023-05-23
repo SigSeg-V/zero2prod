@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use diesel::{PgConnection, Connection};
 use dotenvy;
 

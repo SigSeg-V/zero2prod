@@ -28,7 +28,6 @@ async fn health_check_success() {
 async fn subscribe_ret_200_on_valid_form() {
     // bind addr
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to port");
-    let conn_str = db_settings::conn_str();
 
     // spawn app and client inst.
     let addr = spawn_app(listener);
