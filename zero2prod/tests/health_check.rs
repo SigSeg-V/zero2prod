@@ -48,9 +48,12 @@ async fn subscribe_ret_200_on_valid_form() {
     assert_eq!(resp.status().as_u16(), 200);
 
     let saved = subscriptions
+            .filter(email.eq("bendover@hotmail.com".to_string()))
+            .limit(1)
             .load::<Subscriber>(conn)
             .expect("Error loading users");
 
+    assert_eq!(saved.is_empty(), false);
     for sub in saved {
         assert_eq!(sub.email, "bendover@hotmail.com");
         assert_eq!(sub.name, "ben dover");
