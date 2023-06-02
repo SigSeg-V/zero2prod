@@ -3,7 +3,7 @@ use uuid::Uuid;
 use chrono::DateTime;
 use crate::schema::subscriptions;
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Insertable)]
 #[diesel(table_name = subscriptions)]
 pub struct Subscriber {
     pub id: Uuid,
