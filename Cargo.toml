@@ -1,2 +1,2 @@
 [workspace]
-members = ["server", "zero2prod", "zero2prod/migrations"]
+members = ["server", "zero2prod", "zero2prod/migration"]
