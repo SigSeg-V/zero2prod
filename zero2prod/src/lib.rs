@@ -11,3 +11,4 @@ pub mod models;
 pub mod startup;
 pub use startup::run;
 
+mod migrator;

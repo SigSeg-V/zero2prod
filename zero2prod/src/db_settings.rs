@@ -1,4 +1,6 @@
-use diesel::{r2d2, Connection, PgConnection};
+use std::time::Duration;
+
+use diesel::{r2d2::ConnectionManager, r2d2::Pool, Connection, PgConnection};
 use dotenvy;
 
 fn init_env() {
@@ -28,17 +30,26 @@ pub fn conn_str_custom_db_name(db_name: String) -> String {
 
 pub fn establish_connection() -> PgConnection {
     let conn = conn_str();
-    PgConnection::establish(conn.as_str())
-        .unwrap_or_else(|_| panic!("Unable to connect to db: {}", conn))
+
+    let mut conn = PgConnection::establish(conn.as_str())
+        .unwrap_or_else(|_| panic!("Unable to connect to db: {}", conn));
+    if cfg!(test) {
+        conn.begin_test_transaction()
+            .expect("Failed to start transaction");
+    }
+    conn
 }
 
-pub type DbPool = r2d2::Pool<r2d2::ConnectionManager<PgConnection>>;
+pub type DbPool = Pool<ConnectionManager<PgConnection>>;
 
-pub fn initialize_db_pool() -> DbPool {
+pub fn initialize_db_pool(pool_size: u32) -> DbPool {
     let connection_str = conn_str();
-    let manager = r2d2::ConnectionManager::<PgConnection>::new(connection_str);
-
-    r2d2::Pool::builder()
+    let manager = ConnectionManager::<PgConnection>::new(connection_str);
+    Pool::builder()
+        .max_size(pool_size)
+        .min_idle(Some(std::cmp::min(5, pool_size)))
+        .max_lifetime(Some(Duration::from_secs(60 * 60 * 24)))
+        .idle_timeout(Some(Duration::from_secs(60 * 2)))
         .build(manager)
-        .expect("database URL should be valid path to Postgres DB")
+        .expect("Failed to create pool.")
 }

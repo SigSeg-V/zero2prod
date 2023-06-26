@@ -8,10 +8,10 @@ if ! [ -x "$(command -v psql)" ]; then
     exit 1
 fi
 
-if ! [ -x "$(command -v diesel)" ]; then
-    echo >&2 "Error: diesel is not installed."
+if ! [ -x "$(command -v sea-orm-cli)" ]; then
+    echo >&2 "Error: sea-orm-cli is not installed."
     echo >&2 "Install with:"
-    echo >&2 "$ cargo install diesel_cli --no-default-features --features postgres"
+    echo >&2 "$ cargo install sea-orm-clis"
     exit 1
 fi
 
@@ -47,7 +47,6 @@ done
 >&2 echo "Postgres is up and running on port ${DB_PORT}!"
 
 export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
-diesel setup
-diesel migration run
+sea-orm-cli migrate refresh
 
->&2 echo "Diesel has migrated."
+>&2 echo "Sea Orm has migrated."
