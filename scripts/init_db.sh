@@ -11,7 +11,7 @@ fi
 if ! [ -x "$(command -v sea-orm-cli)" ]; then
     echo >&2 "Error: sea-orm-cli is not installed."
     echo >&2 "Install with:"
-    echo >&2 "$ cargo install sea-orm-clis"
+    echo >&2 "$ cargo install sea-orm-cli"
     exit 1
 fi
 

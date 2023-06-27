@@ -1,11 +1,11 @@
-use crate::db_settings::DbPool;
 use actix_web::{dev::Server, web, App, HttpServer};
-use diesel::PgConnection;
 use std::net::TcpListener;
 
 use crate::routes;
 
-pub fn run(listener: TcpListener, connection: PgConnection) -> Result<Server, std::io::Error> {
+use sea_orm::{DatabaseConnection};
+
+pub fn run(listener: TcpListener, connection: DatabaseConnection) -> Result<Server, std::io::Error> {
     let conn = web::Data::new(connection);
 
     let server = HttpServer::new(move || {

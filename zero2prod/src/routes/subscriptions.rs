@@ -1,26 +1,19 @@
-use crate::models::Subscriber;
-use crate::{db_settings::DbPool, schema::subscriptions};
 use actix_web::{web, HttpResponse, Responder};
-use diesel::{PgConnection, RunQueryDsl};
-use diesel_async::AsyncConnection;
+use sea_orm::DatabaseConnection;
 use uuid::Uuid;
-
 use chrono;
+use crate::entities;
 
 pub async fn subscribe(
     form: web::Form<SubscribeForm>,
-    connection: web::Data<DbPool>,
+    connection: web::Data<DatabaseConnection>,
 ) -> actix_web::Result<impl Responder> {
-    let mut connection = &mut connection.get().unwrap();
-    if cfg!(test) {
-        connection.begin_test_transaction().unwrap();
-    }
-    let new_user = Subscriber {
-        id: Uuid::new_v4(),
-        email: form.email.clone(),
-        name: form.name.clone(),
-        subscribed_at: chrono::offset::Utc::now(),
+    let new_user = entities::user::ActiveModel {
+        name: sea_orm::ActiveValue::Set(form.name),
+        email: sea_orm::ActiveValue::Set(form.email),
+        created_at: chrono::NaiveDate,
     };
+
     diesel::insert_into(subscriptions::table)
         .values(new_user)
         .execute(&mut connection)

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use diesel::{r2d2::ConnectionManager, r2d2::Pool, Connection, PgConnection};
 use dotenvy;
+use sea_orm::{Database, ConnectOptions, DatabaseConnection, DbErr};
 
 fn init_env() {
     dotenvy::dotenv().expect("Failed to init env var.");
@@ -28,28 +28,10 @@ pub fn conn_str_custom_db_name(db_name: String) -> String {
     )
 }
 
-pub fn establish_connection() -> PgConnection {
-    let conn = conn_str();
-
-    let mut conn = PgConnection::establish(conn.as_str())
-        .unwrap_or_else(|_| panic!("Unable to connect to db: {}", conn));
-    if cfg!(test) {
-        conn.begin_test_transaction()
-            .expect("Failed to start transaction");
-    }
-    conn
-}
-
-pub type DbPool = Pool<ConnectionManager<PgConnection>>;
-
-pub fn initialize_db_pool(pool_size: u32) -> DbPool {
-    let connection_str = conn_str();
-    let manager = ConnectionManager::<PgConnection>::new(connection_str);
-    Pool::builder()
-        .max_size(pool_size)
-        .min_idle(Some(std::cmp::min(5, pool_size)))
-        .max_lifetime(Some(Duration::from_secs(60 * 60 * 24)))
-        .idle_timeout(Some(Duration::from_secs(60 * 2)))
-        .build(manager)
-        .expect("Failed to create pool.")
+pub async fn initialize_db_pool(pool_size: u32) -> Result<DatabaseConnection, DbErr> {
+    let mut opts = ConnectOptions::new(conn_str());
+        opts.connect_timeout(Duration::from_secs(10))
+        .acquire_timeout(Duration::from_secs(10))
+        .idle_timeout(Duration::from_secs(10));
+    Database::connect(opts).await
 }
